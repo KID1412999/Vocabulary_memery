@@ -109,10 +109,21 @@ class Ui_Form(object):
 		self.label.setText(_translate("Form", "学习时间"))
 		self.pushButton_6.setText(_translate("Form", "开始"))
 		self.pushButton_6.clicked.connect(self.start)
-		self.pushButton_7.setText(_translate("Form", "结束"))
+		self.pushButton_7.setText(_translate("Form", "重新开始"))
+		self.pushButton_7.clicked.connect(self.reset)
+	def reset(self):
+		if os.path.exists('C://log_pop_index.txt'):
+			os.remove('C://log_pop_index.txt')
+		if os.path.exists('C://log_index.txt'):
+			os.remove('C://log_index.txt')
+		if os.path.exists('C://log_date.txt'):
+			os.remove('C://log_date.txt')
+		if os.path.exists('C://log_plans.txt'):
+			os.remove('C://log_plans.txt')
+		print('已重置！')
 	def pop_(self):
 		global i
-		if i not in log_pop_index:
+		if list(todayvocab[i%len(todayvocab)].values())[1] not in log_pop_index:
 			log_pop_index.append(list(todayvocab[i%len(todayvocab)].values())[1])
 		f=open('C://log_pop_index.txt','wb')
 		pickle.dump(log_pop_index,f)
@@ -136,6 +147,8 @@ class Ui_Form(object):
 			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
 			print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
+		global c
+		c+=1
 		print('开始了！')
 		global df
 		global log_pop_index
@@ -152,7 +165,6 @@ class Ui_Form(object):
 			f.close()
 		except:
 			log_pop_index=[]
-		
 		try:
 			f=open('C://log_date.txt','rb')
 			today=pickle.load(f)
@@ -165,60 +177,61 @@ class Ui_Form(object):
 			f.close()
 		except:
 			Plans=[]
-		
-		for i in range(n):
-			t=randint(1,len(df.index))
-			while t in index or t in old_index:
+		if c<=1:
+			for i in range(n):
 				t=randint(1,len(df.index))
-			index.append(t)
-		for i in Plans:
-			date_.append(i['date'])
-		
-		for i in index:
-			if i not in log_pop_index:
-				todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1],'index':i})
-		
-		for i in Plans:
-			if i['date']==str(pd.datetime.now()).split(':')[0][:-3]:
-				for j in i['index']:
-					if j not in log_pop_index:
-						todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
-		shuffle(todayvocab)#打乱顺序
-		print('todayvocab',len(todayvocab),todayvocab,log_pop_index)
-		
-		if str(pd.datetime.now()).split(':')[0][:-3] not in today:
-			today.append(str(pd.datetime.now()).split(':')[0][:-3])
-			for i in s:
-				d=str(pd.datetime.now()+DateOffset(days=i)).split(':')[0][:-3]
-				# print(d,date_)
-				if d not in date_:
-					Plans.append({'date':d,'index':index})
-				else:
-					for j in Plans:
-						if j['date']==d:
-							t=j['index'][:]
-							for i in index: 
-								if i not in log_pop_index:
-									t.append(i)
-							j['index']=t[:]
+				while t in index or t in old_index:
+					t=randint(1,len(df.index))
+				index.append(t)
+			for i in Plans:
+				date_.append(i['date'])
 			for i in index:
-				old_index.append(i)
-			print('today',today,'\n index',index,'\n'+'todayvocab',todayvocab,'\n Plans',Plans)
-			f=open('C://log_plans.txt','wb')
-			pickle.dump(Plans,f)
-			f.close()
-			f=open('C://log_date.txt','wb')
-			pickle.dump(today,f)
-			f.close()
+				if i not in log_pop_index:
+					todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1],'index':i})
+			for i in Plans:
+				if i['date']==str(pd.datetime.now()).split(':')[0][:-3]:
+					for j in i['index']:
+						if j not in log_pop_index:
+							todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
+			shuffle(todayvocab)#打乱顺序
+			print('todayvocab',len(todayvocab),todayvocab,log_pop_index)
+			if str(pd.datetime.now()).split(':')[0][:-3] not in today:
+				today.append(str(pd.datetime.now()).split(':')[0][:-3])
+				for i in s:
+					d=str(pd.datetime.now()+DateOffset(days=i)).split(':')[0][:-3]
+					# print(d,date_)
+					if d not in date_:
+						Plans.append({'date':d,'index':index})
+					else:
+						for j in Plans:
+							if j['date']==d:
+								t=j['index'][:]
+								for i in index: 
+									if i not in log_pop_index:
+										t.append(i)
+								j['index']=t[:]
+				for i in index:
+					old_index.append(i)
+				print('today',today,'\n index',index,'\n'+'todayvocab',todayvocab,'\n Plans',Plans)
+				f=open('C://log_plans.txt','wb')
+				pickle.dump(Plans,f)
+				f.close()
+				f=open('C://log_date.txt','wb')
+				pickle.dump(today,f)
+				f.close()
+				f=open('C://log_index.txt','wb')
+				pickle.dump(old_index,f)
+				f.close()
 			
 			
 if __name__ == "__main__":
-	s=[1,2,4,7,15]
+	s=[1,2,4,7,15,30]
 	todayvocab=[]
 	index=[]
 	n=10
 	Plans=[]
 	i=0
+	c=0
 	today=[]
 	old_index=[]
 	log_pop_index=[]
