@@ -111,8 +111,12 @@ class Ui_Form(object):
 		self.pushButton_6.clicked.connect(self.start)
 		self.pushButton_7.setText(_translate("Form", "结束"))
 	def pop_(self):
-		pass
-		
+		global i
+		if i not in log_pop_index:
+			log_pop_index.append(list(todayvocab[i%len(todayvocab)].values())[1])
+		f=open('C://log_pop_index.txt','wb')
+		pickle.dump(log_pop_index,f)
+		f.close()
 	def next(self):
 		global i
 		if len(todayvocab)==0:
@@ -121,7 +125,7 @@ class Ui_Form(object):
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
 		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-		print(todayvocab,len(todayvocab))
+		print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def foward(self):
 		global i
 		if len(todayvocab)==0:
@@ -130,11 +134,11 @@ class Ui_Form(object):
 		if i>=1:
 			self.textBrowser.setPlainText("")
 			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-			print(todayvocab,len(todayvocab))
+			print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
 		print('开始了！')
-		path2='C://Users/Administrator/Desktop/3000.csv'
-		df=pd.read_csv(path2, sep=',',low_memory=False,header=None)
+		global df
+		global log_pop_index
 		date_=[]
 		try:
 			f=open('C://log_index.txt','rb')
@@ -142,6 +146,13 @@ class Ui_Form(object):
 			f.close()
 		except:
 			old_index=[]
+		try:
+			f=open('C://log_pop_index.txt','rb')#舍弃掉的单词索引
+			log_pop_index=pickle.load(f)
+			f.close()
+		except:
+			log_pop_index=[]
+		
 		try:
 			f=open('C://log_date.txt','rb')
 			today=pickle.load(f)
@@ -154,23 +165,26 @@ class Ui_Form(object):
 			f.close()
 		except:
 			Plans=[]
+		
 		for i in range(n):
-			t=randint(1,3000)
+			t=randint(1,len(df.index))
 			while t in index or t in old_index:
-				t=randint(1,3000)
+				t=randint(1,len(df.index))
 			index.append(t)
-			
 		for i in Plans:
 			date_.append(i['date'])
 		
 		for i in index:
-			todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1]})
+			if i not in log_pop_index:
+				todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1],'index':i})
 		
 		for i in Plans:
 			if i['date']==str(pd.datetime.now()).split(':')[0][:-3]:
 				for j in i['index']:
-					todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1]})
-		print('today',today,'\n index',index,'\n'+'todayvocab',todayvocab,'\n Plans',Plans)
+					if j not in log_pop_index:
+						todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
+		shuffle(todayvocab)#打乱顺序
+		print('todayvocab',len(todayvocab),todayvocab,log_pop_index)
 		
 		if str(pd.datetime.now()).split(':')[0][:-3] not in today:
 			today.append(str(pd.datetime.now()).split(':')[0][:-3])
@@ -183,8 +197,9 @@ class Ui_Form(object):
 					for j in Plans:
 						if j['date']==d:
 							t=j['index'][:]
-							for i in index:
-								t.append(i)
+							for i in index: 
+								if i not in log_pop_index:
+									t.append(i)
 							j['index']=t[:]
 			for i in index:
 				old_index.append(i)
@@ -195,9 +210,7 @@ class Ui_Form(object):
 			f=open('C://log_date.txt','wb')
 			pickle.dump(today,f)
 			f.close()
-			f=open('C://log_index.txt','wb')
-			pickle.dump(old_index,f)
-			f.close()
+			
 			
 if __name__ == "__main__":
 	s=[1,2,4,7,15]
@@ -208,6 +221,10 @@ if __name__ == "__main__":
 	i=0
 	today=[]
 	old_index=[]
+	log_pop_index=[]
+	path2='C://Users/Administrator/Desktop/新词汇.csv'
+	f = open(path2)
+	df=pd.read_csv(f, sep=',',low_memory=False,header=None)
 	app = QtWidgets.QApplication(sys.argv)
 	MainWindow = QtWidgets.QMainWindow()
 	ui = Ui_Form()
