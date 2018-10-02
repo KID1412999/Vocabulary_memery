@@ -117,9 +117,12 @@ class Ui_Form(object):
 		w=word
 		if '?' in w:
 			w=w.replace('?','')
-		url='https://fanyi.baidu.com/gettts?lan=uk&text='+w+'&spd=3&source=web'
-		urllib.request.urlretrieve(url,'C://'+w+'.mp3')
-		track = pygame.mixer.music.load('C://'+w+'.mp3')
+		if  not os.path.exists('C://mp3files'):
+			os.mkdir('C://mp3files')
+		if  not os.path.exists('C://mp3files//'+w+'.mp3'):
+			url='https://fanyi.baidu.com/gettts?lan=uk&text='+w+'&spd=3&source=web'
+			urllib.request.urlretrieve(url,'C://mp3files//'+w+'.mp3')
+		track = pygame.mixer.music.load('C://mp3files//'+w+'.mp3')
 		pygame.mixer.music.play()
 		time.sleep(1)
 		pygame.mixer.music.stop()
@@ -148,7 +151,10 @@ class Ui_Form(object):
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
 		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-		self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+		try:
+			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+		except:
+			print('Wrong!')
 		#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def foward(self):
 		global i
@@ -158,7 +164,10 @@ class Ui_Form(object):
 		if i>=1:
 			self.textBrowser.setPlainText("")
 			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+			try:
+				self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+			except:
+				print('Wrong!')
 			#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
 		global c
