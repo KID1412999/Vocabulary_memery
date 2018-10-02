@@ -15,6 +15,8 @@ from PyQt5.QtCore import QTime
 import time
 import sys
 import pickle, os
+import pygame
+import urllib 
 def addlist_(a,b):
 	for i in b:
 		a.append(i)
@@ -111,6 +113,16 @@ class Ui_Form(object):
 		self.pushButton_6.clicked.connect(self.start)
 		self.pushButton_7.setText(_translate("Form", "重新开始"))
 		self.pushButton_7.clicked.connect(self.reset)
+	def read_(self,word):
+		w=word
+		if '?' in w:
+			w=w.replace('?','')
+		url='https://fanyi.baidu.com/gettts?lan=uk&text='+w+'&spd=3&source=web'
+		urllib.request.urlretrieve(url,'C://'+w+'.mp3')
+		track = pygame.mixer.music.load('C://'+w+'.mp3')
+		pygame.mixer.music.play()
+		time.sleep(1)
+		pygame.mixer.music.stop()
 	def reset(self):
 		if os.path.exists('C://log_pop_index.txt'):
 			os.remove('C://log_pop_index.txt')
@@ -136,7 +148,8 @@ class Ui_Form(object):
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
 		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-		print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
+		self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+		#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def foward(self):
 		global i
 		if len(todayvocab)==0:
@@ -145,7 +158,8 @@ class Ui_Form(object):
 		if i>=1:
 			self.textBrowser.setPlainText("")
 			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-			print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
+			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
+			#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
 		global c
 		c+=1
@@ -194,7 +208,7 @@ class Ui_Form(object):
 						if j not in log_pop_index:
 							todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
 			shuffle(todayvocab)#打乱顺序
-			print('todayvocab',len(todayvocab),todayvocab,log_pop_index)
+			print('今日单词数量',len(todayvocab),'\n单词总量',len(df.index),'\n剩余单词',len(df.index)-len(log_pop_index))
 			if str(pd.datetime.now()).split(':')[0][:-3] not in today:
 				today.append(str(pd.datetime.now()).split(':')[0][:-3])
 				for i in s:
@@ -222,9 +236,9 @@ class Ui_Form(object):
 				f=open('C://log_index.txt','wb')
 				pickle.dump(old_index,f)
 				f.close()
-			
-			
+
 if __name__ == "__main__":
+	pygame.mixer.init()
 	s=[1,2,4,7,15,30]
 	todayvocab=[]
 	index=[]
