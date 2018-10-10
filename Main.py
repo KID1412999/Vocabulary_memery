@@ -11,7 +11,7 @@ from random import *
 from datetime import datetime as dt
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QTime
+from PyQt5.QtCore import QTime, Qt
 import time
 import sys
 import pickle, os
@@ -96,6 +96,15 @@ class Ui_Form(object):
 		self.textBrowser.setGeometry(QtCore.QRect(85, 70, 200, 80))
 		self.textBrowser.setObjectName("textBrowser")
 		
+		cb=QtWidgets.QCheckBox('显示英文',Form)
+		cb.move(31, 226)
+		cb.toggle()
+		cb.stateChanged.connect(self.change1)
+		cb =QtWidgets.QCheckBox('显示中文',Form)
+		cb.move(31, 246)
+		cb.toggle()
+		cb.stateChanged.connect(self.change2)
+
 		self.textBrowser.setPlainText("")
 	def retranslateUi(self, Form):
 		_translate = QtCore.QCoreApplication.translate
@@ -113,13 +122,29 @@ class Ui_Form(object):
 		self.pushButton_6.clicked.connect(self.start)
 		self.pushButton_7.setText(_translate("Form", "重新开始"))
 		self.pushButton_7.clicked.connect(self.reset)
+	def change1(self,state):
+		global English
+		if state == Qt.Checked:
+			English=True
+			
+			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+		else:
+			English=False
+	def change2(self,state):
+		global Chinese
+		if state == Qt.Checked:
+			Chinese=True
+			self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+		else:
+			Chinese=False
+
 	def read_(self,word):
 		w=word
 		if '?' in w:
 			w=w.replace('?','')
-		if  not os.path.exists('C://mp3files'):
+		if	not os.path.exists('C://mp3files'):
 			os.mkdir('C://mp3files')
-		if  not os.path.exists('C://mp3files//'+w+'.mp3'):
+		if	not os.path.exists('C://mp3files//'+w+'.mp3'):
 			url='https://fanyi.baidu.com/gettts?lan=uk&text='+w+'&spd=3&source=web'
 			urllib.request.urlretrieve(url,'C://mp3files//'+w+'.mp3')
 		track = pygame.mixer.music.load('C://mp3files//'+w+'.mp3')
@@ -150,7 +175,10 @@ class Ui_Form(object):
 		i+=1
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
-		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+		if English:
+			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+		if Chinese:
+			self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
 		try:
 			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 		except:
@@ -163,7 +191,10 @@ class Ui_Form(object):
 		i-=1
 		if i>=1:
 			self.textBrowser.setPlainText("")
-			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>'+'</font>'+'''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+			if English:
+				self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+			if Chinese:
+				self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
 			try:
 				self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 			except:
@@ -217,7 +248,7 @@ class Ui_Form(object):
 						if j not in log_pop_index:
 							todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
 			shuffle(todayvocab)#打乱顺序
-			print('今日单词数量',len(todayvocab),'\n单词总量',len(df.index),'\n剩余单词',len(df.index)-len(log_pop_index))
+			print('今日单词数量',len(todayvocab),'\n单词总量',len(df.index),'\n剩余单词',len(df.index)-len(log_pop_index),'历史',today)
 			if str(pd.datetime.now()).split(':')[0][:-3] not in today:
 				today.append(str(pd.datetime.now()).split(':')[0][:-3])
 				for i in s:
@@ -251,13 +282,14 @@ if __name__ == "__main__":
 	s=[1,2,4,7,15,30]
 	todayvocab=[]
 	index=[]
-	n=10
+	n=15
 	Plans=[]
 	i=0
 	c=0
 	today=[]
 	old_index=[]
 	log_pop_index=[]
+	Chinese,English=True,True
 	path2='C://Users/Administrator/Desktop/新词汇.csv'
 	f = open(path2)
 	df=pd.read_csv(f, sep=',',low_memory=False,header=None)
