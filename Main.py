@@ -17,6 +17,12 @@ import sys
 import pickle, os
 import pygame
 import urllib 
+def shade(s):#随机遮挡
+	t=[s[i] for i in range(len(s)) if i%2]
+	for i in t:
+		if i!='，':
+			s=s.replace(i,'_')
+	return s
 def addlist_(a,b):
 	for i in b:
 		a.append(i)
@@ -96,23 +102,25 @@ class Ui_Form(object):
 		self.textBrowser.setGeometry(QtCore.QRect(85, 70, 200, 80))
 		self.textBrowser.setObjectName("textBrowser")
 		
-		cb=QtWidgets.QCheckBox('显示英文',Form)
-		cb.move(31, 226)
-		cb.toggle()
-		cb.stateChanged.connect(self.change1)
-		cb =QtWidgets.QCheckBox('显示中文',Form)
-		cb.move(31, 246)
+		
+		cb =QtWidgets.QCheckBox('完全显示中文',Form)
+		cb.move(11, 226)
 		cb.toggle()
 		cb.stateChanged.connect(self.change2)
+		cb =QtWidgets.QCheckBox('部分显示中文',Form)
+		cb.move(11, 246)
+		cb.toggle()
+		cb.stateChanged.connect(self.change3)
+		
 
 		self.textBrowser.setPlainText("")
 	def retranslateUi(self, Form):
 		_translate = QtCore.QCoreApplication.translate
 		Form.setWindowTitle(_translate("Form", "单词记忆"))
 		self.pushButton_2.setText(_translate("Form", "上一个"))
-		self.pushButton_2.clicked.connect(self.foward)
+		self.pushButton_2.clicked.connect(self.backward)
 		self.pushButton.setText(_translate("Form", "下一个"))
-		self.pushButton.clicked.connect(self.next)
+		self.pushButton.clicked.connect(self.forward)
 		self.pushButton_3.setText(_translate("Form", "完全记得"))
 		self.pushButton_3.clicked.connect(self.pop_)
 		self.pushButton_5.setText(_translate("Form", "有印象"))
@@ -122,14 +130,7 @@ class Ui_Form(object):
 		self.pushButton_6.clicked.connect(self.start)
 		self.pushButton_7.setText(_translate("Form", "重新开始"))
 		self.pushButton_7.clicked.connect(self.reset)
-	def change1(self,state):
-		global English
-		if state == Qt.Checked:
-			English=True
-			
-			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
-		else:
-			English=False
+
 	def change2(self,state):
 		global Chinese
 		if state == Qt.Checked:
@@ -137,7 +138,14 @@ class Ui_Form(object):
 			self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
 		else:
 			Chinese=False
-
+	def change3(self,state):
+		global Shading
+		if state == Qt.Checked:
+			Shading=True
+			Chinese=False
+			self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
+		else:
+			Shading=False
 	def read_(self,word):
 		w=word
 		if '?' in w:
@@ -168,33 +176,37 @@ class Ui_Form(object):
 		f=open('C://log_pop_index.txt','wb')
 		pickle.dump(log_pop_index,f)
 		f.close()
-	def next(self):
+	def forward(self):
 		global i
 		if len(todayvocab)==0:
 			self.start()
 		i+=1
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
-		if English:
-			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
-		if Chinese:
-			self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+		if Chinese or Shading:
+			if Chinese:
+				self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+			else:
+				self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
 		try:
 			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 		except:
 			print('Wrong!')
 		#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
-	def foward(self):
+	def backward(self):
 		global i
 		if len(todayvocab)==0:
 			self.start()
 		i-=1
 		if i>=1:
 			self.textBrowser.setPlainText("")
-			if English:
-				self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
-			if Chinese:
-				self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+			if Chinese or Shading:
+				if Chinese:
+					self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+				else:
+					self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
 			try:
 				self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 			except:
@@ -289,7 +301,7 @@ if __name__ == "__main__":
 	today=[]
 	old_index=[]
 	log_pop_index=[]
-	Chinese,English=True,True
+	Chinese,English,Shading=True,True,True
 	path2='C://Users/Administrator/Desktop/新词汇.csv'
 	f = open(path2)
 	df=pd.read_csv(f, sep=',',low_memory=False,header=None)
