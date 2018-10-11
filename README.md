@@ -20,7 +20,7 @@ sys
 ickle
 os
 pygame
-rllib  
+urllib  
 #用法  
 将“单词文件.csv”放在桌面上,运行“Main.py” 即可  
 
