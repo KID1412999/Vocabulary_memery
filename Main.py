@@ -12,9 +12,11 @@ from datetime import datetime as dt
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QTime, Qt
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 import time
 import sys
-import pickle, os
+import pickle, os 
 import pygame
 import urllib 
 def shade(s):#随机遮挡
@@ -27,6 +29,14 @@ def addlist_(a,b):
 	for i in b:
 		a.append(i)
 	return a
+class SecondWindow(QWidget):
+	def __init__(self, parent=None):
+		super(SecondWindow, self).__init__(parent)
+		self.resize(200, 200)
+		self.setStyleSheet("background: violet")
+		
+	def handle_close(self):
+		self.close()
 class Ui_Form(object):
 	def setupUi(self, Form):
 		Form.setObjectName("Form")
@@ -101,7 +111,7 @@ class Ui_Form(object):
 		self.textBrowser = QtWidgets.QTextBrowser(Form)
 		self.textBrowser.setGeometry(QtCore.QRect(85, 70, 200, 80))
 		self.textBrowser.setObjectName("textBrowser")
-		
+
 		
 		cb =QtWidgets.QCheckBox('完全显示中文',Form)
 		cb.move(11, 226)
@@ -130,7 +140,18 @@ class Ui_Form(object):
 		self.pushButton_6.clicked.connect(self.start)
 		self.pushButton_7.setText(_translate("Form", "重新开始"))
 		self.pushButton_7.clicked.connect(self.reset)
-
+	
+	def query(self,word):
+		global root
+		l=0
+		r=''
+		for i in root.keys():
+			if i in word:
+				if len(i)>l:
+					l=len(i)
+					r=i+' '+root[i]
+		return r
+		
 	def change2(self,state):
 		global Chinese
 		if state == Qt.Checked:
@@ -183,7 +204,8 @@ class Ui_Form(object):
 		i+=1
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
-		self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+		self.textBrowser.append('''<font size="6" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+		self.textBrowser.append('''<font size="4" color="red"><p>'''+self.query(list(todayvocab[i%len(todayvocab)].keys())[0])+'</p>')
 		if Chinese or Shading:
 			if Chinese:
 				self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
@@ -201,7 +223,8 @@ class Ui_Form(object):
 		i-=1
 		if i>=1:
 			self.textBrowser.setPlainText("")
-			self.textBrowser.append('''<font size="5" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+			self.textBrowser.append('''<font size="6" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
+			self.textBrowser.append('''<font size="4" color="red"><p>'''+self.query(list(todayvocab[i%len(todayvocab)].keys())[0])+'</p>')
 			if Chinese or Shading:
 				if Chinese:
 					self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
@@ -209,7 +232,7 @@ class Ui_Form(object):
 					self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
 			try:
 				self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
-			except:
+			except Exception:
 				print('Wrong!')
 			#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
@@ -223,25 +246,25 @@ class Ui_Form(object):
 			f=open('C://log_index.txt','rb')
 			old_index=pickle.load(f)
 			f.close()
-		except:
+		except Exception:
 			old_index=[]
 		try:
 			f=open('C://log_pop_index.txt','rb')#舍弃掉的单词索引
 			log_pop_index=pickle.load(f)
 			f.close()
-		except:
+		except Exception:
 			log_pop_index=[]
 		try:
 			f=open('C://log_date.txt','rb')
 			today=pickle.load(f)
 			f.close()
-		except:
+		except Exception:
 			today=[]
 		try:
 			f=open('C://log_plans.txt','rb')
 			Plans=pickle.load(f)
 			f.close()
-		except:
+		except Exception:
 			Plans=[]
 		if c<=1:
 			for i in range(n):
@@ -294,13 +317,20 @@ if __name__ == "__main__":
 	s=[1,2,4,7,15,30]
 	todayvocab=[]
 	index=[]
-	n=15
+	n=30
 	Plans=[]
 	i=0
 	c=0
 	today=[]
 	old_index=[]
 	log_pop_index=[]
+	f=open("C://3076个词根词缀(均有例词).csv",encoding='utf-8')
+	root={}
+	for k in f.readlines():
+		try:
+			root[k.split(',')[0]]=k.split(',')[1]
+		except Exception:
+			pass
 	Chinese,English,Shading=True,True,True
 	path2='C://Users/Administrator/Desktop/新词汇.csv'
 	f = open(path2)
