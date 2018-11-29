@@ -13,6 +13,9 @@
 ## 10/11 更新
 增加遮挡中文选项  
 ![更改显示选项](https://github.com/KID1412999/Vocabulary_memery/blob/master/TIM%E6%88%AA%E5%9B%BE20181011101910.png)  
+## 11/29 更新
+增加词根词缀  
+![更改显示选项](https://github.com/KID1412999/Vocabulary_memery/blob/master/TIM%E6%88%AA%E5%9B%BE20181129105057.png)  
 
 ## 用到的模块  
 pandas
