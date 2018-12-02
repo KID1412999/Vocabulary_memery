@@ -113,14 +113,17 @@ class Ui_Form(object):
 		self.textBrowser.setObjectName("textBrowser")
 
 		
-		cb =QtWidgets.QCheckBox('完全显示中文',Form)
-		cb.move(11, 226)
-		cb.toggle()
-		cb.stateChanged.connect(self.change2)
-		cb =QtWidgets.QCheckBox('部分显示中文',Form)
-		cb.move(11, 246)
-		cb.toggle()
-		cb.stateChanged.connect(self.change3)
+		cb1=QtWidgets.QPushButton('完全显示中文',Form)
+		cb1.move(11, 226)
+		cb1.clicked.connect(self.change2)
+		
+		cb2=QtWidgets.QPushButton('完全部分中文',Form)
+		cb2.move(11, 256)
+		cb2.clicked.connect(self.change3)
+		# cb =QtWidgets.QCheckBox('部分显示中文',Form)
+		# cb.move(11, 246)
+		# cb.toggle()
+		# cb.stateChanged.connect(self.change3)
 		
 
 		self.textBrowser.setPlainText("")
@@ -152,21 +155,11 @@ class Ui_Form(object):
 					r=i+' '+root[i]
 		return r
 		
-	def change2(self,state):
-		global Chinese
-		if state == Qt.Checked:
-			Chinese=True
-			self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-		else:
-			Chinese=False
-	def change3(self,state):
-		global Shading
-		if state == Qt.Checked:
-			Shading=True
-			Chinese=False
-			self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
-		else:
-			Shading=False
+	def change2(self):
+		self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
+	def change3(self):
+		self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
+	
 	def read_(self,word):
 		w=word
 		if '?' in w:
@@ -205,12 +198,7 @@ class Ui_Form(object):
 		_translate = QtCore.QCoreApplication.translate
 		self.textBrowser.setPlainText("")
 		self.textBrowser.append('''<font size="6" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
-		self.textBrowser.append('''<font size="4" color="red"><p>'''+self.query(list(todayvocab[i%len(todayvocab)].keys())[0])+'</p>')
-		if Chinese or Shading:
-			if Chinese:
-				self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-			else:
-				self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
+		self.textBrowser.append('''<font size="3" color="red"><p>'''+self.query(list(todayvocab[i%len(todayvocab)].keys())[0])+'</p>')
 		try:
 			self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 		except:
@@ -225,18 +213,13 @@ class Ui_Form(object):
 			self.textBrowser.setPlainText("")
 			self.textBrowser.append('''<font size="6" color="blue"><p>'''+list(todayvocab[i%len(todayvocab)].keys())[0]+'</p>')
 			self.textBrowser.append('''<font size="4" color="red"><p>'''+self.query(list(todayvocab[i%len(todayvocab)].keys())[0])+'</p>')
-			if Chinese or Shading:
-				if Chinese:
-					self.textBrowser.append('''<font size="5" color="red"><p>'''+list(todayvocab[i%len(todayvocab)].values())[0]+'</p>'+'</font>')
-				else:
-					self.textBrowser.append('''<font size="5" color="red"><p>'''+shade(list(todayvocab[i%len(todayvocab)].values())[0])+'</p>'+'</font>')
 			try:
 				self.read_(list(todayvocab[i%len(todayvocab)].keys())[0])
 			except Exception:
 				print('Wrong!')
 			#print(list(todayvocab[i%len(todayvocab)].values())[1],log_pop_index)
 	def start(self):
-		global c
+		global c,n
 		c+=1
 		print('开始了！')
 		global df
@@ -248,41 +231,58 @@ class Ui_Form(object):
 			f.close()
 		except Exception:
 			old_index=[]
+		print('旧词汇加载完成')
 		try:
 			f=open('C://log_pop_index.txt','rb')#舍弃掉的单词索引
 			log_pop_index=pickle.load(f)
 			f.close()
 		except Exception:
 			log_pop_index=[]
+		print('已经词汇加载完成')
 		try:
 			f=open('C://log_date.txt','rb')
 			today=pickle.load(f)
 			f.close()
 		except Exception:
 			today=[]
+		print('日期加载完成')
 		try:
 			f=open('C://log_plans.txt','rb')
 			Plans=pickle.load(f)
 			f.close()
 		except Exception:
 			Plans=[]
+		print('词汇计划加载完成')
 		if c<=1:
+			print('新词汇加载中》》》')
+			assert len(df.index)-n>0
+			lk=index+old_index
+			ss=list(set([i for i in range(len(df.index))])-set(lk))
+			print('剩余单词数量',len(ss))
+			xx=0
+			for i in Plans:
+				if i['date']==str(pd.datetime.now()).split(':')[0][:-3]:
+					for j in i['index']:
+						if j not in log_pop_index:
+							xx+=1
+							todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
+			shuffle(todayvocab)#打乱顺序
+			n-=xx
 			for i in range(n):
 				t=randint(1,len(df.index))
 				while t in index or t in old_index:
 					t=randint(1,len(df.index))
 				index.append(t)
-			for i in Plans:
+			print('今日词汇加载完成')
+			for i in Plans: 
 				date_.append(i['date'])
 			for i in index:
 				if i not in log_pop_index:
-					todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1],'index':i})
-			for i in Plans:
-				if i['date']==str(pd.datetime.now()).split(':')[0][:-3]:
-					for j in i['index']:
-						if j not in log_pop_index:
-							todayvocab.append({df.iloc[j,:2][0]:df.iloc[j,:2][1],'index':j})
-			shuffle(todayvocab)#打乱顺序
+					try:
+						todayvocab.append({df.iloc[i,:2][0]:df.iloc[i,:2][1],'index':i})
+					except Exception:
+						pass
+			
 			print('今日单词数量',len(todayvocab),'\n单词总量',len(df.index),'\n剩余单词',len(df.index)-len(log_pop_index),'历史',today)
 			if str(pd.datetime.now()).split(':')[0][:-3] not in today:
 				today.append(str(pd.datetime.now()).split(':')[0][:-3])
@@ -317,7 +317,7 @@ if __name__ == "__main__":
 	s=[1,2,4,7,15,30]
 	todayvocab=[]
 	index=[]
-	n=30
+	n=70
 	Plans=[]
 	i=0
 	c=0
@@ -331,7 +331,8 @@ if __name__ == "__main__":
 			root[k.split(',')[0]]=k.split(',')[1]
 		except Exception:
 			pass
-	Chinese,English,Shading=True,True,True
+	f.close()
+	print('词根加载完成')
 	path2='C://Users/Administrator/Desktop/新词汇.csv'
 	f = open(path2)
 	df=pd.read_csv(f, sep=',',low_memory=False,header=None)
